@@ -1,4 +1,10 @@
 {
   "version": 1,
-  "categories": []
+  "categories": [
+    {
+      "id": "13f4a160-e39d-400e-8760-975c60bda04b",
+      "name": "Movie",
+      "items": []
+    }
+  ]
 }
