@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bookmark Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #121a2d;
+      --panel-2: #18233b;
+      --border: #293650;
+      --text: #eef3ff;
+      --muted: #a4b0c8;
+      --accent: #818cf8;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 28px 22px 112px;
+      background: radial-gradient(ellipse at top left,
+          #182448 0%,
+          var(--bg) 52%);
+      color: var(--text);
+      font:
+        15px/1.45 system-ui,
+        -apple-system,
+        Segoe UI,
+        Roboto,
+        Arial,
+        sans-serif;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .topbar {
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      margin: 0 0 5px;
+      letter-spacing: -0.03em;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .sync-status {
+      font-size: 0.6rem;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .sync-status.offline {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px 14px;
+      color: var(--text);
+      background: var(--panel-2);
+      transition:
+        transform 0.12s,
+        border-color 0.12s,
+        background 0.12s;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #5153c6, #592e88e1);
+      color: #fff;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .btn.small {
+      padding: 6px 10px;
+      border-radius: 9px;
+      font-size: 0.86rem;
+    }
+
+    .btn.danger {
+      color: var(--danger);
+    }
+
+    #dashboard {
+      max-width: 1200px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .category {
+      min-width: 0;
+      background: rgba(18, 26, 45, 0.85);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--cat-accent, var(--accent));
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+      overflow: hidden;
+    }
+
+    .category-head {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(24, 35, 59, 0.6);
+    }
+
+    .category-title {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--cat-accent, var(--text));
+    }
+
+    .category-count {
+      color: var(--muted);
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+
+    /* Updated Grid layout to limit items to ~4 to 5 per row max */
+    .items {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .item-card {
+      min-width: 0;
+      min-height: 52px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--cat-accent, var(--accent));
+      border-radius: 9px;
+      background: linear-gradient(150deg, #151e36, #10172b);
+      color: var(--text);
+      text-align: left;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+      transition:
+        border-color 0.15s,
+        background 0.15s,
+        transform 0.1s,
+        box-shadow 0.15s;
+    }
+
+    .item-card:hover {
+      border-color: #eef3ff;
+      background: linear-gradient(150deg, #233258, #182440);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .item-card:hover .item-name {
+      color: #ffffff;
+    }
+
+    .item-card .item-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      line-height: 1.25;
+      flex: 1;
+      min-width: 0;
+      transition: color 0.15s;
+    }
+
+    .item-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 3px 5px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition:
+        color 0.15s,
+        background 0.15s;
+    }
+
+    .icon-btn:hover {
+      background: #293650;
+      color: var(--text);
+    }
+
+    .icon-btn.delete-btn {
+      color: var(--danger);
+    }
+
+    .icon-btn.delete-btn:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger-hover);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 28px 18px;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      grid-column: 1/-1;
+    }
+
+    .category-empty {
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 12px;
+      text-align: center;
+      grid-column: 1/-1;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      z-index: 10;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 14px 20px max(14px, env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: center;
+      background: rgba(9, 14, 28, 0.92);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+    }
+
+    .bottom-bar .btn {
+      min-width: 220px;
+      padding: 13px 22px;
+      box-shadow: 0 6px 22px rgba(88, 115, 240, 0.22);
+    }
+
+    dialog {
+      width: min(540px, calc(100% - 28px));
+      border: 1px solid #344361;
+      border-radius: 18px;
+      background: #111a2d;
+      color: var(--text);
+      padding: 0;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+    }
+
+    dialog::backdrop {
+      background: rgba(2, 6, 16, 0.72);
+      backdrop-filter: blur(4px);
+    }
+
+    .dialog-head {
+      padding: 20px 22px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dialog-head h2 {
+      font-size: 1.2rem;
+      margin: 0;
+      flex: 1;
+    }
+
+    .dialog-body {
+      padding: 4px 22px 22px;
+    }
+
+    .field {
+      display: block;
+      margin-top: 14px;
+    }
+
+    .field span {
+      display: block;
+      margin-bottom: 6px;
+      color: #cbd5e8;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .field input,
+    .field textarea {
+      display: block;
+      width: 100%;
+      color: var(--text);
+      background: #0b1222;
+      border: 1px solid #344361;
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin: 8px 0 0;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 30;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 15px;
+      background: #202d48;
+      border: 1px solid #41547a;
+      color: var(--text);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      max-width: calc(100% - 32px);
+    }
+
+    .toast.error {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Bookmark Dashboard</h1>
+    </div>
+    <div class="toolbar">
+      <div id="syncBadge" class="sync-status">Connected</div>
+      <button class="btn small" id="syncNowBtn" type="button">🔄 Refresh</button>
+      <button class="btn small" id="exportBtn" type="button">Export backup</button>
+      <button class="btn small" id="importBtn" type="button">Import backup</button>
+      <input id="importFile" type="file" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <main id="dashboard" aria-live="polite"></main>
+
+  <div class="bottom-bar">
+    <button class="btn primary" id="addCategoryBtn" type="button">
+      ＋ Add Category
+    </button>
+  </div>
+
+  <dialog id="categoryDialog">
+    <div class="dialog-head">
+      <h2 id="categoryDialogTitle">Add category</h2>
+      <button class="icon-btn" data-close="categoryDialog" aria-label="Close">✕</button>
+    </div>
+    <form class="dialog-body" id="categoryForm">
+      <label class="field"><span>Category name</span><input id="categoryName" maxlength="100" required placeholder="e.g. Work, Learning, Tools" /></label>
+      <div class="dialog-actions">
+        <button class="btn" type="button" data-close="categoryDialog">Cancel</button>
+        <button class="btn primary" type="submit">Save category</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="itemDialog">
+    <div class="dialog-head">
+      <h2 id="itemDialogTitle">Add link or text</h2>
+      <button class="icon-btn" data-close="itemDialog" aria-label="Close">✕</button>
+    </div>
+    <form class="dialog-body" id="itemForm">
+      <label class="field"><span>Name / title</span><input id="itemName" maxlength="140" required placeholder="e.g. Project portal or Meeting notes" /></label>
+      <label class="field"><span>Website URL (optional)</span><input id="itemUrl" type="text" maxlength="2000" placeholder="https://example.com" /></label>
+      <p class="hint">
+        If you enter a URL, the card opens that website in a new tab. If the URL is blank, the card searches the Name / title text in a new tab.
+      </p>
+      <div class="dialog-actions">
+        <button class="btn" type="button" data-close="itemDialog">Cancel</button>
+        <button class="btn primary" type="submit">Save item</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // ⚙️ GITHUB REPOSITORY CONFIGURATION
+      const GITHUB_USER = "SUJAYZ17";
+      const REPO_NAME = "Bookmark";
+      const FILE_PATH = "dashboard.json";
+      const GITHUB_TOKEN = "";
+
+      const STORAGE_KEY = "personalLauncherDashboard.v1";
+      const $ = (id) => document.getElementById(id);
+      let state = { version: 1, categories: [] };
+      let fileSha = null; // Required by GitHub API for updates
+      let editingCategoryId = null;
+      let editingItem = null;
+      let toastTimer;
+
+      const CATEGORY_ACCENTS = [
+        "#818cf8", "#34d399", "#fbbf24", "#c084fc",
+        "#f472b6", "#38bdf8", "#fb7185", "#4ade80",
+      ];
+
+      const makeId = () =>
+        window.crypto && crypto.randomUUID
+          ? crypto.randomUUID()
+          : "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+
+      const escapeHTML = (value) =>
+        String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[ch]);
+
+      const normalizeText = (value) => String(value ?? "").trim();
+
+      function notify(message, isError = false) {
+        const toast = $("toast");
+        toast.textContent = message;
+        
+        if (isError) {
+          toast.classList.add("error");
+        } else {
+          toast.classList.remove("error");
+        }
+
+        toast.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.add("hidden"), 2600);
+      }
+
+      // Sync changes to GitHub Repository using Contents API
+      async function syncToCloud() {
+        if (!GITHUB_USER || GITHUB_USER.includes("YOUR_GITHUB") || !GITHUB_TOKEN || GITHUB_TOKEN.includes("YOUR_PERSONAL")) {
+          return;
+        }
+
+        try {
+          const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2))));
+          const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+            method: "PUT",
+            headers: {
+              "Authorization": `token ${GITHUB_TOKEN}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              message: "Update dashboard layout via web launcher",
+              content: contentEncoded,
+              sha: fileSha
+            })
+          });
+
+          if (response.ok) {
+            const resData = await response.json();
+            fileSha = resData.content.sha; // Update SHA for subsequent edits
+          }
+        } catch (err) {
+          console.error("Cloud repo push failed:", err);
+        }
+      }
+
+      // Refresh / Pull data from GitHub Repository
+      async function syncFromCloud() {
+        const badge = $("syncBadge");
+
+        if (!GITHUB_USER || GITHUB_USER.includes("YOUR_GITHUB") || !GITHUB_TOKEN || GITHUB_TOKEN.includes("YOUR_PERSONAL")) {
+          badge.textContent = "Not Configured";
+          badge.classList.add("offline");
+          notify("GitHub credentials not configured.", true); 
+          return;
+        }
+
+        try {
+          const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+            headers: {
+              "Authorization": `token ${GITHUB_TOKEN}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            fileSha = data.sha; 
+            const decodedContent = decodeURIComponent(escape(atob(data.content)));
+            const parsed = JSON.parse(decodedContent);
+            
+            if (parsed && parsed.version === 1 && Array.isArray(parsed.categories)) {
+              state = parsed;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+              render();
+              
+              badge.textContent = "Connected";
+              badge.classList.remove("offline");
+              notify("✅ Repository synced successfully."); 
+            }
+          } else {
+            badge.textContent = "Connection Failed";
+            badge.classList.add("offline");
+            notify("❌ Failed to fetch from GitHub repository.", true); 
+          }
+        } catch (err) {
+          console.error(err);
+          badge.textContent = "Offline / Error";
+          badge.classList.add("offline");
+          notify("Network error during refresh.", true); 
+        }
+      }
+
+      function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        syncToCloud();
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.version === 1 && Array.isArray(parsed.categories)) {
+              state = parsed;
+            }
+          }
+        } catch {}
+        render();
+      }
+
+      function safeUrl(raw) {
+        const value = normalizeText(raw);
+        if (!value) return "";
+        let candidate = value;
+        if (!/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(candidate))
+          candidate = "https://" + candidate;
+        try {
+          const parsed = new URL(candidate);
+          if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
+            return null;
+          return parsed.href;
+        } catch {
+          return null;
+        }
+      }
+
+      function render() {
+        const dashboard = $("dashboard");
+        dashboard.innerHTML = "";
+        state.categories.forEach((category, index) => {
+          const accentColor = CATEGORY_ACCENTS[index % CATEGORY_ACCENTS.length];
+          const section = document.createElement("section");
+          section.className = "category";
+          section.dataset.categoryId = category.id;
+          section.style.setProperty("--cat-accent", accentColor);
+
+          const shownItems = category.items;
+          section.innerHTML = `
+        <div class="category-head">
+          <div class="category-title" title="${escapeHTML(category.name)}">${escapeHTML(category.name)}</div>
+          <span class="category-count">${category.items.length} item${category.items.length === 1 ? "" : "s"}</span>
+          <button class="btn small" data-action="add-item" data-category="${escapeHTML(category.id)}" type="button">＋ Link</button>
+          <button class="icon-btn" data-action="rename-category" data-category="${escapeHTML(category.id)}" title="Rename category" aria-label="Rename ${escapeHTML(category.name)}">✎</button>
+          <button class="icon-btn delete-btn" data-action="delete-category" data-category="${escapeHTML(category.id)}" title="Delete category" aria-label="Delete ${escapeHTML(category.name)}">🗑</button>
+        </div>
+        <div class="items"></div>`;
+          const itemsBox = section.querySelector(".items");
+          if (shownItems.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "category-empty";
+            empty.textContent = "No items yet. Use ＋ Link to add one.";
+            itemsBox.appendChild(empty);
+          } else {
+            shownItems.forEach((item) => {
+              const card = document.createElement("div");
+              card.className = "item-card";
+              card.tabIndex = 0;
+              card.setAttribute("role", "button");
+              card.setAttribute(
+                "aria-label",
+                (item.url ? "Open link: " : "Search for: ") + item.name,
+              );
+              card.dataset.action = "open-item";
+              card.dataset.category = category.id;
+              card.dataset.item = item.id;
+              card.innerHTML = `
+            <span class="item-name">${escapeHTML(item.name)}</span>
+            <span class="item-actions">
+              <button class="icon-btn" data-action="edit-item" data-category="${escapeHTML(category.id)}" data-item="${escapeHTML(item.id)}" title="Edit item" aria-label="Edit ${escapeHTML(item.name)}">✎</button>
+              <button class="icon-btn delete-btn" data-action="delete-item" data-category="${escapeHTML(category.id)}" data-item="${escapeHTML(item.id)}" title="Delete item" aria-label="Delete ${escapeHTML(item.name)}">🗑</button>
+            </span>`;
+              itemsBox.appendChild(card);
+            });
+          }
+          dashboard.appendChild(section);
+        });
+        if (state.categories.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.innerHTML =
+            "Your dashboard is empty. Click <strong>＋ Add Category</strong> below to get started.";
+          dashboard.appendChild(empty);
+        }
+      }
+
+      function openCategoryDialog(categoryId = null) {
+        editingCategoryId = categoryId;
+        const category = state.categories.find((c) => c.id === categoryId);
+        $("categoryDialogTitle").textContent = category ? "Rename category" : "Add category";
+        $("categoryName").value = category ? category.name : "";
+        $("categoryDialog").showModal();
+        setTimeout(() => $("categoryName").focus(), 0);
+      }
+
+      function openItemDialog(categoryId, itemId = null) {
+        const category = state.categories.find((c) => c.id === categoryId);
+        if (!category) return;
+        editingItem = { categoryId, itemId };
+        const item = category.items.find((i) => i.id === itemId);
+        $("itemDialogTitle").textContent = item ? "Edit shortcut" : "Add shortcut";
+        $("itemName").value = item ? item.name : "";
+        $("itemUrl").value = item ? item.url : "";
+        $("itemDialog").showModal();
+        setTimeout(() => $("itemName").focus(), 0);
+      }
+
+      function findCategory(id) {
+        return state.categories.find((c) => c.id === id);
+      }
+      function findItem(categoryId, itemId) {
+        const category = findCategory(categoryId);
+        return category && category.items.find((i) => i.id === itemId);
+      }
+
+      function handleAction(action, categoryId, itemId) {
+        const category = findCategory(categoryId);
+        if (action === "add-item") return openItemDialog(categoryId);
+        if (action === "rename-category") return openCategoryDialog(categoryId);
+        if (action === "delete-category") {
+          if (
+            category &&
+            confirm(`Delete “${category.name}” and all its items? This cannot be undone.`)
+          ) {
+            state.categories = state.categories.filter((c) => c.id !== categoryId);
+            saveState();
+            render();
+            notify("Category deleted.");
+          }
+          return;
+        }
+        const item = findItem(categoryId, itemId);
+        if (action === "edit-item" && item) return openItemDialog(categoryId, itemId);
+        if (action === "delete-item" && item && category) {
+          if (confirm(`Delete “${item.name}”? This cannot be undone.`)) {
+            category.items = category.items.filter((i) => i.id !== itemId);
+            saveState();
+            render();
+            notify("Item deleted.");
+          }
+          return;
+        }
+        if (action === "open-item" && item) {
+          if (item.url) {
+            const url = safeUrl(item.url);
+            if (url) {
+              window.open(url, "_blank", "noopener,noreferrer");
+            } else notify("This URL is invalid.");
+          } else {
+            window.open(
+              "https://www.google.com/search?q=" + encodeURIComponent(item.name),
+              "_blank", "noopener,noreferrer"
+            );
+          }
+        }
+      }
+
+      $("addCategoryBtn").addEventListener("click", () => openCategoryDialog());
+      $("syncNowBtn").addEventListener("click", () => syncFromCloud());
+
+      $("dashboard").addEventListener("click", (event) => {
+        const control = event.target.closest("[data-action]");
+        if (!control) return;
+        handleAction(control.dataset.action, control.dataset.category, control.dataset.item);
+      });
+      $("dashboard").addEventListener("keydown", (event) => {
+        const card = event.target.closest(".item-card");
+        if (!card || event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
+        event.preventDefault();
+        handleAction("open-item", card.dataset.category, card.dataset.item);
+      });
+      document.querySelectorAll("[data-close]").forEach((button) => {
+        button.addEventListener("click", () => $(button.dataset.close).close());
+      });
+
+      $("categoryForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = normalizeText($("categoryName").value);
+        if (!name) return;
+        if (editingCategoryId) {
+          const category = findCategory(editingCategoryId);
+          if (category) category.name = name;
+        } else state.categories.push({ id: makeId(), name, items: [] });
+        saveState();
+        render();
+        $("categoryDialog").close();
+        notify(editingCategoryId ? "Category updated." : "Category added.");
+      });
+
+      $("itemForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!editingItem) return;
+        const name = normalizeText($("itemName").value);
+        const rawUrl = normalizeText($("itemUrl").value);
+        if (!name) return;
+        const url = rawUrl ? safeUrl(rawUrl) : "";
+        if (url === null) {
+          alert("Please enter a valid website address using HTTP or HTTPS.");
+          $("itemUrl").focus();
+          return;
+        }
+        const category = findCategory(editingItem.categoryId);
+        if (!category) return;
+        if (editingItem.itemId) {
+          const item = category.items.find((i) => i.id === editingItem.itemId);
+          if (item) Object.assign(item, { name, url, text: "" });
+        } else category.items.push({ id: makeId(), name, url, text: "" });
+        saveState();
+        render();
+        $("itemDialog").close();
+        notify(editingItem.itemId ? "Item updated." : "Link added.");
+        editingItem = null;
+      });
+
+      $("exportBtn").addEventListener("click", () => {
+        const payload = JSON.stringify({
+          app: "Personal Launcher Dashboard",
+          exportedAt: new Date().toISOString(),
+          data: state,
+        }, null, 2);
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "launcher-dashboard-backup.json";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        notify("Backup exported.");
+      });
+
+      $("importBtn").addEventListener("click", () => $("importFile").click());
+      $("importFile").addEventListener("change", async (event) => {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = "";
+        if (!file) return;
+        try {
+          const parsed = JSON.parse(await file.text());
+          const incoming = parsed && parsed.data ? parsed.data : parsed;
+          if (!incoming || incoming.version !== 1 || !Array.isArray(incoming.categories))
+            throw new Error("Invalid format.");
+          state = incoming;
+          saveState();
+          render();
+          notify("Backup imported successfully.");
+        } catch (error) {
+          alert("Could not import backup.");
+        }
+      });
+
+      // Startup initializer
+      window.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        syncFromCloud();
+      });
+    })();
+  </script>
+</body>
+
+</html>
