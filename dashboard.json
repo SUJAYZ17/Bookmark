@@ -40,7 +40,14 @@
     {
       "id": "5f3fc851-1824-4bb9-b5e7-844a75e19935",
       "name": "Sports",
-      "items": []
+      "items": [
+        {
+          "id": "35beb9b8-5e7e-4ba7-ae5a-49256b7d3fd3",
+          "name": "All Sports",
+          "url": "https://fmhy.net/video#live-sports",
+          "text": ""
+        }
+      ]
     }
   ]
 }
