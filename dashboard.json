@@ -6,12 +6,6 @@
       "name": "Movie",
       "items": [
         {
-          "id": "0005d211-17ed-45a9-a74d-dd52a137672d",
-          "name": "Yo movies",
-          "url": "",
-          "text": ""
-        },
-        {
           "id": "a2044a96-edd1-4af8-898b-47c435077c3e",
           "name": "BllyFlix",
           "url": "",
