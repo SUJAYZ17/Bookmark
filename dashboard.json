@@ -70,7 +70,14 @@
     {
       "id": "e3ee2ea2-177a-4a51-9c31-1be2fa325fc0",
       "name": "Song Playlist",
-      "items": []
+      "items": [
+        {
+          "id": "547bf3b7-75c4-44da-889e-a4cc9e2eedd3",
+          "name": "Shop",
+          "url": "https://music.youtube.com/playlist?list=PLTJ1PnzCWyFw",
+          "text": ""
+        }
+      ]
     }
   ]
 }
